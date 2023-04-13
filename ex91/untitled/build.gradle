@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+mainClassName = 'hello.HelloWorld'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'hello.HelloWorld'
+    }
+}
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation 'junit:junit:4.13.1'
+}
+task createDockerImage(type: Copy) {
+    dependsOn 'build'
+
+    from 'build/libs'
+    into 'docker'
+
+    doLast {
+        new File(destinationDir, 'Dockerfile').text = '''
+            FROM openjdk:8-jre-alpine
+            COPY app.jar .
+            ENTRYPOINT ["java", "-jar", "app.jar"]
+        '''.stripIndent()
+    }
+}
+test {
+    useJUnitPlatform()
+}
+
